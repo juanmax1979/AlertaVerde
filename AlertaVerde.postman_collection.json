@@ -1,0 +1,265 @@
+{
+	"info": {
+		"_postman_id": "cac7ec25-97fa-415f-8a8d-f7a39acaef59",
+		"name": "AlertaVerde",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "28374601"
+	},
+	"item": [
+		{
+			"name": "Obtener denuncias por id",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Auth",
+						"value": "abcDEF123456!",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:3008/api/denuncias/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3008",
+					"path": [
+						"api",
+						"denuncias",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Listar categorias de las denuncias",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Auth",
+						"value": "abcDEF123456!",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:3008/api/categorias",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3008",
+					"path": [
+						"api",
+						"categorias"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Obtener usuarios por Id",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Auth",
+						"value": "abcDEF123456!",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "descripcion",
+							"value": "quema de basurales",
+							"type": "text"
+						},
+						{
+							"key": "ubicacion",
+							"value": "Molina 123, Resistencia, Chaco",
+							"type": "text"
+						},
+						{
+							"key": "categoria",
+							"value": "17",
+							"type": "text"
+						},
+						{
+							"key": "usuario",
+							"value": "1",
+							"type": "text"
+						},
+						{
+							"key": "adjunto",
+							"type": "file",
+							"src": "/C:/Users/juanm/Pictures/Poco X6 Marce/Pictures/SAVE_20240708_100711.jpg"
+						},
+						{
+							"key": "privado",
+							"value": "0",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:3008/api/denuncias",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3008",
+					"path": [
+						"api",
+						"denuncias"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "New Request",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "Guardar denuncias",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Auth",
+						"value": "abcDEF123456!",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "descripcion",
+							"value": "quema de basurales",
+							"type": "text"
+						},
+						{
+							"key": "ubicacion",
+							"value": "Molina 123, Resistencia, Chaco",
+							"type": "text"
+						},
+						{
+							"key": "categoria",
+							"value": "17",
+							"type": "text"
+						},
+						{
+							"key": "usuario",
+							"value": "1",
+							"type": "text"
+						},
+						{
+							"key": "adjunto",
+							"type": "file",
+							"src": "/C:/Users/juanm/Pictures/Poco X6 Marce/Pictures/Whatsapp/IMG-20241010-WA0004.jpg"
+						},
+						{
+							"key": "privado",
+							"value": "0",
+							"type": "text"
+						},
+						{
+							"key": "localidad",
+							"value": "1",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:3008/api/denuncias",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3008",
+					"path": [
+						"api",
+						"denuncias"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Registrar usuarios",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Auth",
+						"value": "abcDEF123456!",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "nya",
+							"value": "Pablo Marmol",
+							"type": "text"
+						},
+						{
+							"key": "dni",
+							"value": "23456712",
+							"type": "text"
+						},
+						{
+							"key": "email",
+							"value": "marmol.pablo@gmail.com",
+							"type": "text"
+						},
+						{
+							"key": "telefono",
+							"value": "3625789078",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:3008/api/usuarios/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3008",
+					"path": [
+						"api",
+						"usuarios",
+						""
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

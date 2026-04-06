@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@bot-whatsapp/portal": "^0.1.38"
+  }
+}

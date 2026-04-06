@@ -1,0 +1,31 @@
+# Dependencias
+node_modules/
+
+# Variables de entorno (secretos)
+.env
+.env.*
+!.env.example
+
+# Logs y caché
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+
+# Build / Vite
+frontend/dist/
+**/.vite/
+
+# WhatsApp / Baileys (sesiones y credenciales locales)
+Bot/**/bot_sessions/
+**/sessions/
+
+# Subidas temporales y archivos de usuario
+uploads/
+uploads_tmp/
+**/uploads_tmp/
+
+# IDE
+.idea/
+.vscode/
+*.swp

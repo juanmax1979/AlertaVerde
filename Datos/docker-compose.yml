@@ -1,0 +1,23 @@
+version: "3.8"
+
+services:
+  pj-bot:
+    build:
+      context: .
+    image: juanma/pj-bot:1.0.0   # cambialo si querés otro nombre/versión
+    container_name: pj-bot
+    env_file: .env
+    environment:
+      TZ: America/Argentina/Buenos_Aires
+      # Podés sobreescribir PORT si querés, por defecto 3008
+    ports:
+      - "3008:3008"
+    volumes:
+      - ./data/sessions:/app/.sessions
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:3008/"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s

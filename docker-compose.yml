@@ -1,0 +1,91 @@
+version: "3.9"
+
+networks:
+  app_net:
+    driver: bridge
+
+volumes:
+  uploads_data: {}
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: backend-alertaverde:1.9.4
+    container_name: backend
+    env_file:
+      - ./backend/.env
+    environment:
+      CORS_ORIGIN: "http://10.30.3.1:3502,http://localhost:3502"
+      PORT: "3500"
+      UPLOAD_DIR: "/app/uploads"
+    ports:
+      - "3500:3500"                 # útil para probar desde el host
+    volumes:
+      - uploads_data:/app/uploads
+    restart: unless-stopped
+    networks:
+      - app_net
+    # OJO: node:20-slim no trae curl por defecto → instalalo en Dockerfile o quita este healthcheck
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:3500/health || curl -fsS http://localhost:3500/api/health"]
+      interval: 30s
+      timeout: 5s
+      start_period: 45s
+      retries: 5
+
+
+  bot:                              
+    build:
+      context: ./Bot/base-js-baileys-memory
+      dockerfile: Dockerfile
+    image: bot-alertaverde:1.9.6
+    container_name: bot_baileys
+    env_file:
+      - ./Bot/base-js-baileys-memory/.env
+    environment:
+      # Si tu backend expone rutas bajo /api, dejá este valor.
+      # Si tu backend expone en raíz (p.ej. /denuncias), usá http://backend:3500
+      API_BASE_URL: "http://backend:3500/api"
+      PORT: "3501"
+    depends_on:
+      backend:
+        condition: service_started     # o service_healthy si dejás healthcheck arriba funcionando
+    ports:
+      - "3501:3501"
+    restart: unless-stopped
+    networks:
+      - app_net
+    # Este healthcheck requiere que el bot exponga /health en 3501 y que la imagen tenga curl/wget
+    # Si no, quitalo o cambialo.
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:3501/health"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 5
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: frontend-alertaverde:1.9.4
+    container_name: web_frontend
+    depends_on:
+      backend:
+        condition: service_healthy     # espera a que /health del backend responda
+    ports:
+      - "3502:80"
+    restart: unless-stopped
+    networks:
+      - app_net
+    volumes:
+      - ./frontend/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    # nginx:alpine no siempre trae wget → mejor curl o quita este healthcheck
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost/"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 5
