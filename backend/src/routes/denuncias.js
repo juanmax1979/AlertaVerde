@@ -297,6 +297,7 @@ router.get('/', denunciasQueryByUsuario, async (req, res) => {
         d.adjunto,
         d.privado,
         d.usuario           AS usuario_dni,
+        u.id                AS usuario_id,
         u.nya               AS usuario_nya
       FROM [dbo].[denuncias] d
       LEFT JOIN [dbo].[categorias]  c  ON c.id  = d.categoria
@@ -448,6 +449,7 @@ router.get('/:id', idParamValidator, async (req, res) => {
           d.adjunto,
           d.privado,
           d.usuario           AS usuario_dni,
+          u.id                AS usuario_id,
           u.nya               AS usuario_nya
         FROM [dbo].[denuncias] d
         LEFT JOIN [dbo].[categorias]  c  ON c.id  = d.categoria

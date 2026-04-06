@@ -110,10 +110,23 @@ export default function DenunciasTable() {
     setPage(1)
   }, [search, categoriaId, localidadId, privado])
 
-  const openUserModal = async (userId) => {
+  const openUserModal = async (usuarioId, usuarioDni) => {
     setModal({ open: true, user: null, loading: true, error: '' })
     try {
-      const { data } = await api.get(`/api/usuarios/${userId}`)
+      const idNum = usuarioId != null && String(usuarioId).trim() !== '' ? Number(usuarioId) : NaN
+      const dni = usuarioDni != null ? String(usuarioDni).trim() : ''
+
+      let data
+      if (Number.isFinite(idNum) && idNum > 0) {
+        const res = await api.get(`/api/usuarios/${idNum}`)
+        data = res.data
+      } else if (dni) {
+        const res = await api.get(`/api/usuarios/dni/${encodeURIComponent(dni)}`)
+        data = res.data
+      } else {
+        throw new Error('Sin usuario asociado a la denuncia')
+      }
+
       setModal({ open: true, user: data, loading: false, error: '' })
     } catch (err) {
       console.error(err)
@@ -302,7 +315,10 @@ export default function DenunciasTable() {
                     <td>{d.ubicacion || ''}</td>
                     <td>{String(d.privado) === '1' ? 'Sí' : 'No'}</td>
                     <td>
-                      <button className="btn link" onClick={() => openUserModal(d.usuario_id)}>
+                      <button
+                        className="btn link"
+                        onClick={() => openUserModal(d.usuario_id, d.usuario_dni)}
+                      >
                         Ver
                       </button>
                     </td>
@@ -371,10 +387,11 @@ export default function DenunciasTable() {
 
             {modal.user && (
               <div className="small" style={{ lineHeight: 1.6 }}>
-                <div><b>ID:</b> {modal.user.id}</div>
-                <div><b>Nombre:</b> {modal.user.nombre || '-'}</div>
-                <div><b>Login:</b> {modal.user.login || modal.user.email || '-'}</div>
-                <div><b>Localidad:</b> {modal.user.localidad || '-'}</div>
+                <div><b>ID:</b> {modal.user.id ?? '-'}</div>
+                <div><b>Nombre y apellido:</b> {modal.user.nya || modal.user.nombre || '-'}</div>
+                <div><b>DNI:</b> {modal.user.dni ?? '-'}</div>
+                <div><b>Email:</b> {modal.user.email || '-'}</div>
+                <div><b>Teléfono:</b> {modal.user.telefono || '-'}</div>
               </div>
             )}
           </div>
