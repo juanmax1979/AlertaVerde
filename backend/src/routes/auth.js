@@ -4,8 +4,8 @@ import jwt from 'jsonwebtoken'
 import dotenv from 'dotenv'
 import rateLimit, { ipKeyGenerator } from 'express-rate-limit'
 import slowDown from 'express-slow-down'
-import crypto from 'node:crypto'
 import { getPool, sql } from '../db.js'
+import { verifyPassword } from '../utils/passwords.js'
 
 dotenv.config()
 
@@ -36,12 +36,6 @@ function normLogin(req) {
 
 function keyFromReq(req) {
   return `${normLogin(req) || 'anon'}::${ipKeyGenerator(req)}`
-}
-
-function safeEqual(a, b) {
-  const ah = crypto.createHash('sha256').update(String(a), 'utf8').digest()
-  const bh = crypto.createHash('sha256').update(String(b), 'utf8').digest()
-  return crypto.timingSafeEqual(ah, bh)
 }
 
 function fixedDelay() {
@@ -148,13 +142,24 @@ router.post(
         return res.status(401).json({ message: 'Credenciales inválidas' })
       }
 
-      // Comparación en tiempo constante (DB en texto plano)
-      const passwordOk = safeEqual(row.clave, clave)
+      const { ok: passwordOk, upgradeToHash } = await verifyPassword(clave, row.clave)
 
       if (!passwordOk) {
         await fixedDelay()
         registerLoginFailure(req)
         return res.status(401).json({ message: 'Credenciales inválidas' })
+      }
+
+      if (upgradeToHash) {
+        try {
+          await pool
+            .request()
+            .input('id', sql.Int, row.id)
+            .input('clave', sql.NVarChar(255), upgradeToHash)
+            .query(`UPDATE dbo.login SET clave = @clave WHERE id = @id`)
+        } catch (rehashErr) {
+          console.warn('[auth] No se pudo migrar clave a bcrypt:', rehashErr?.message || rehashErr)
+        }
       }
 
       // Éxito
