@@ -19,6 +19,71 @@ function denunciaEsPrivada(privado) {
   return s === '1' || s === 'true' || s === 'yes'
 }
 
+const TZ_AR = 'America/Argentina/Cordoba'
+
+/** El listado del backend usa `fecha_hora` (SQL Server). */
+function formatoFechaDenuncia(row) {
+  const raw = row?.fecha_hora ?? row?.fecha ?? row?.created_at
+  if (raw == null || raw === '') return ''
+  try {
+    const dt = new Date(raw)
+    if (Number.isNaN(dt.getTime())) return String(raw)
+    return dt.toLocaleString('es-AR', {
+      timeZone: TZ_AR,
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    })
+  } catch {
+    return String(raw)
+  }
+}
+
+/** Texto indexable para el campo Búsqueda (incluye fecha en varios formatos). */
+function textoBusquedaDenuncia(d) {
+  const chunks = [
+    d.descripcion,
+    d.ubicacion,
+    d.localidad,
+    d.categoria,
+    d.categoria_nombre,
+  ]
+  const raw = d.fecha_hora ?? d.fecha ?? d.created_at
+  if (raw != null && raw !== '') {
+    chunks.push(String(raw))
+    chunks.push(formatoFechaDenuncia(d))
+    try {
+      const dt = new Date(raw)
+      if (!Number.isNaN(dt.getTime())) {
+        const parts = new Intl.DateTimeFormat('es-AR', {
+          timeZone: TZ_AR,
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false,
+        }).formatToParts(dt)
+        const get = (t) => parts.find((p) => p.type === t)?.value ?? ''
+        const day = get('day')
+        const month = get('month')
+        const year = get('year')
+        const hour = get('hour')
+        const minute = get('minute')
+        chunks.push(`${day}/${month}/${year}`, `${day}-${month}-${year}`)
+        chunks.push(`${year}-${month}-${day}`, `${day}/${month}`, year)
+        if (hour && minute) chunks.push(`${hour}:${minute}`)
+      }
+    } catch {
+      /* ignorar */
+    }
+  }
+  return chunks.filter(Boolean).join(' ').toLowerCase()
+}
+
 export default function DenunciasTable() {
   const [denuncias, setDenuncias] = useState([])
   const [categorias, setCategorias] = useState([])
@@ -90,10 +155,7 @@ export default function DenunciasTable() {
 
     const s = String(search || '').trim().toLowerCase()
     if (s) {
-      res = res.filter(d => {
-        const t = `${d.descripcion || ''} ${d.ubicacion || ''} ${d.localidad || ''}`.toLowerCase()
-        return t.includes(s)
-      })
+      res = res.filter(d => textoBusquedaDenuncia(d).includes(s))
     }
 
     if (categoriaId) {
@@ -237,7 +299,7 @@ export default function DenunciasTable() {
             <label>Búsqueda</label>
             <input
               className="input"
-              placeholder="Texto en descripción / ubicación..."
+              placeholder="Descripción, ubicación, localidad o fecha (ej. 06/04/2026, 2026, 14:30)..."
               value={search}
               onChange={e => setSearch(e.target.value)}
             />
@@ -315,7 +377,7 @@ export default function DenunciasTable() {
                   <th>Categoría</th>
                   <th>Ubicación</th>
                   <th>Privado</th>
-                  <th>Usuario</th>
+                  <th>Denunciante</th>
                   <th>Acciones</th>
                 </tr>
               </thead>
@@ -323,16 +385,19 @@ export default function DenunciasTable() {
                 {paged.map(d => (
                   <tr key={d.id}>
                     <td>{d.id}</td>
-                    <td>{d.fecha || d.created_at || ''}</td>
+                    <td>{formatoFechaDenuncia(d)}</td>
                     <td>{d.categoria_nombre || d.categoria || ''}</td>
                     <td>{d.ubicacion || ''}</td>
                     <td>{denunciaEsPrivada(d.privado) ? 'Sí' : 'No'}</td>
                     <td>
                       <button
+                        type="button"
                         className="btn link"
+                        title="Ver nombre, DNI, email y teléfono del denunciante"
+                        aria-label="Ver datos del denunciante"
                         onClick={() => openUserModal(d.usuario_id, d.usuario_dni)}
                       >
-                        Ver
+                        Ver datos
                       </button>
                     </td>
                     <td style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -391,7 +456,7 @@ export default function DenunciasTable() {
         <div className="modal-backdrop" onClick={closeUserModal}>
           <div className="modal" onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10 }}>
-              <h3 style={{ marginTop: 0, marginBottom: 10 }}>Usuario</h3>
+              <h3 style={{ marginTop: 0, marginBottom: 10 }}>Datos del denunciante</h3>
               <button className="btn secondary" onClick={closeUserModal}>Cerrar</button>
             </div>
 
