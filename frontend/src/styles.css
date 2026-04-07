@@ -9,6 +9,9 @@ a{color:inherit}
 .card{background:var(--card);border:1px solid #84b6f4;border-radius:16px;box-shadow:0 10px 24px rgba(0,0,0,.08);padding:18px}
 .btn{border:0;border-radius:12px;padding:10px 14px;cursor:pointer;background:var(--accent);color:#fff;font-weight:600}
 .btn.secondary{background:#4d82bc}
+/* .btn + .link: sin esto el color de .link gana y el texto queda azul sobre fondo azul */
+.btn.link{color:#fff;text-decoration:none}
+.btn.link:hover{filter:brightness(1.08);text-decoration:underline}
 .input, .select{width:100%;padding:10px 12px;border-radius:12px;border:1px solid #84b6f4;background:#fcffff;color:var(--text)}
 .row{display:grid;grid-template-columns:repeat(12,1fr);gap:12px}
 .col-6{grid-column:span 6}
