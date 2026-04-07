@@ -7,6 +7,18 @@ import api, {
   toApiMediaUrl,
 } from '../api'
 
+/** API puede devolver bit como boolean, 0/1, string o Buffer (mssql). */
+function denunciaEsPrivada(privado) {
+  if (privado == null) return false
+  if (typeof privado === 'boolean') return privado
+  if (typeof privado === 'number') return privado === 1
+  if (typeof Buffer !== 'undefined' && Buffer.isBuffer(privado)) {
+    return privado.length > 0 && privado[0] === 1
+  }
+  const s = String(privado).trim().toLowerCase()
+  return s === '1' || s === 'true' || s === 'yes'
+}
+
 export default function DenunciasTable() {
   const [denuncias, setDenuncias] = useState([])
   const [categorias, setCategorias] = useState([])
@@ -93,7 +105,8 @@ export default function DenunciasTable() {
     }
 
     if (privado !== '') {
-      res = res.filter(d => String(d.privado) === String(privado))
+      const quierePrivado = privado === '1'
+      res = res.filter(d => denunciaEsPrivada(d.privado) === quierePrivado)
     }
 
     return res
@@ -313,7 +326,7 @@ export default function DenunciasTable() {
                     <td>{d.fecha || d.created_at || ''}</td>
                     <td>{d.categoria_nombre || d.categoria || ''}</td>
                     <td>{d.ubicacion || ''}</td>
-                    <td>{String(d.privado) === '1' ? 'Sí' : 'No'}</td>
+                    <td>{denunciaEsPrivada(d.privado) ? 'Sí' : 'No'}</td>
                     <td>
                       <button
                         className="btn link"
