@@ -12,7 +12,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    image: backend-alertaverde:1.9.4
+    image: backend-alertaverde:1.9.7
     container_name: backend
     env_file:
       - ./backend/.env
@@ -40,7 +40,7 @@ services:
     build:
       context: ./Bot/base-js-baileys-memory
       dockerfile: Dockerfile
-    image: bot-alertaverde:1.9.6
+    image: bot-alertaverde:1.9.7
     container_name: bot_baileys
     env_file:
       - ./Bot/base-js-baileys-memory/.env
@@ -70,7 +70,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    image: frontend-alertaverde:1.9.4
+    image: frontend-alertaverde:1.9.7
     container_name: web_frontend
     depends_on:
       backend:
