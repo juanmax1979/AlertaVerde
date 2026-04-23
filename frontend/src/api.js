@@ -3,21 +3,22 @@ import axios from 'axios'
 
 const RAW = (import.meta.env.VITE_API_BASE_URL || '').trim()
 
-// BASE sin /api. Ej: "http://localhost:3500" o "/api" (si usÃ¡s proxy)
+// BASE sin /api. Ej: "http://localhost:3500" o "/api" (si usás proxy)
 const BASE =
   RAW !== ''
     ? (/^https?:\/\//i.test(RAW)
         ? RAW.replace(/\/+$/, '')
         : `/${RAW.replace(/^\/+/, '').replace(/\/+$/, '')}`)
-    : 'http://localhost:3500' // fallback local
+    : '' // fallback: mismo origen (evita CORS en producci?n)
 
 const api = axios.create({
   baseURL: BASE,
 })
 
 const API_KEY = import.meta.env.VITE_API_KEY || ''
+const BASE_HAS_API_PREFIX = /(^|\/)api$/.test(BASE)
 
-// âœ… Export necesario (lo usan tus componentes)
+// ??? Export necesario (lo usan tus componentes)
 export const toApiMediaUrl = (u) => {
   if (!u) return null
   if (/^https?:\/\//i.test(u)) return u
@@ -34,15 +35,20 @@ export const toApiMediaUrl = (u) => {
 
   // Para endpoints, armamos con /api adelante si corresponde.
   // Si BASE es absoluto (http://localhost:3500) => http://localhost:3500/api/...
-  // Si BASE es relativo (/api) => /api/api/... (malo) si duplicamos; por eso acÃ¡ NO se usa para endpoints comunes.
-  // Este helper es solo para URLs de media; para endpoints usÃ¡ api.get/post.
+  // Si BASE es relativo (/api) => /api/api/... (malo) si duplicamos; por eso acá NO se usa para endpoints comunes.
+  // Este helper es solo para URLs de media; para endpoints usá api.get/post.
   if (/^https?:\/\//i.test(BASE)) return `${BASE}/api${path}`.replace(/\/{2,}/g, '/').replace(/^https:\//, 'https://').replace(/^http:\//, 'http://')
-  // si BASE es "/api" por proxy, entonces endpoint deberÃ­a ser "/api/..." ya desde el caller
+  // si BASE es "/api" por proxy, entonces endpoint debería ser "/api/..." ya desde el caller
   return `/api${path}`.replace(/\/{2,}/g, '/')
 }
 
 // Token en cada request si existe
 api.interceptors.request.use((config) => {
+  // Evita URLs duplicadas tipo /api/api/... cuando BASE ya incluye /api.
+  if (BASE_HAS_API_PREFIX && typeof config.url === 'string') {
+    config.url = config.url.replace(/^\/api(?=\/|$)/, '')
+    if (!config.url.startsWith('/')) config.url = `/${config.url}`
+  }
   const token = localStorage.getItem('token')
   if (token) config.headers.Authorization = `Bearer ${token}`
   if (API_KEY) config.headers.Auth = API_KEY
@@ -50,48 +56,48 @@ api.interceptors.request.use((config) => {
 })
 
 // ---- Endpoints ----
-// âœ… correcto: backend monta /api/auth/login
+// ??? correcto: backend monta /api/auth/login
 export const loginRequest = async (login, clave) => {
   try {
-    const { data } = await api.post('/api/auth/login', { login, clave })
+    const { data } = await api.post('/auth/login', { login, clave })
     return data // { token, user }
   } catch (err) {
     const msg =
       err?.response?.data?.message ||
       err?.response?.data?.error ||
       err?.message ||
-      'Error en autenticaciÃ³n'
+      'Error en autenticación'
     throw new Error(msg)
   }
 }
 
 export const fetchDenuncias = async () => {
-  const { data } = await api.get('/api/denuncias')
+  const { data } = await api.get('/denuncias')
   return data
 }
 
 export const fetchCategorias = async () => {
-  const { data } = await api.get('/api/categorias')
+  const { data } = await api.get('/categorias')
   return data.map((c) => ({ id: c.id, nombre: c.descripcion || c.nombre }))
 }
 
 export const fetchLocalidades = async () => {
-  const { data } = await api.get('/api/localidades')
+  const { data } = await api.get('/localidades')
   return data.map((l) => ({ id: l.id, nombre: l.localidad || l.nombre }))
 }
 
 export const fetchUsuarios = async () => {
-  const { data } = await api.get('/api/usuarios')
+  const { data } = await api.get('/usuarios')
   return data
 }
 
 export const fetchUsuarioByDni = async (dni) => {
-  const { data } = await api.get(`/api/usuarios/dni/${encodeURIComponent(dni)}`)
+  const { data } = await api.get(`/usuarios/dni/${encodeURIComponent(dni)}`)
   return data
 }
 
 export const downloadDenunciaPdf = async (id) => {
-  const res = await api.get(`/api/denuncias/${id}/pdf`, { responseType: 'blob' })
+  const res = await api.get(`/denuncias/${id}/pdf`, { responseType: 'blob' })
   return res.data
 }
 
